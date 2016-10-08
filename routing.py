@@ -24,7 +24,7 @@ def check_def_routes():
 #debug    print routes
     if len(routes) != 0:
         if routes[0].get_attr('RTA_MULTIPATH') != None:
-            print "There is multipath default route installed. Nothing to do."
+            print "There is multipath default route installed. Nothing to do.\n"
             return 0
         else:
             print "There is single gateway default route installed. Checking for ISP links."
@@ -40,14 +40,15 @@ def check_isp_links(check_gw, isp_if, f_testip1, f_testip2, f_testip3, f_isp_gw)
         result = [str(i) for i in fping[0].strip().split() if i != 'is']
         print result
         return 'ok'
-    fping = Popen(['fping', '-I', isp1_if, f_testip3, f_testip2, f_testip1], stdout=PIPE).communicate()
-    result = [str(i) for i in fping[0].strip().split() if i != 'is']
-    print result
-    for i in xrange(len(result)):
-        if i%2 != 0 and result[i] != 'unreachable':
-            print result[i]
-            health_counter += 1
-    return health_counter
+    else:
+        fping = Popen(['fping', '-I', isp1_if, f_testip3, f_testip2, f_testip1], stdout=PIPE).communicate()
+        result = [str(i) for i in fping[0].strip().split() if i != 'is']
+        print result
+        for i in xrange(len(result)):
+            if i%2 != 0 and result[i] != 'unreachable':
+                print result[i]
+                health_counter += 1
+        return health_counter
 
 def_route = check_def_routes()
 #In case we have single gateway default route installed we need to check if another ISP link is alive and if yes install multipath default.
@@ -55,9 +56,14 @@ if def_route == 1:
     print check_isp_links(isp1_if, testip1, testip2, testip3)
 #In case we have no any defaults installed we need to check ISP links and istall multipath if both links are fine or single gateway default if one of the links alive.
 elif def_route == 2:
-    if check_isp_links(1, isp1_if, testip1, testip2, testip3, isp1_gw_ip) == 'ok':
-        print "ISP1 looks good. Insert default route in table main via ISP1."
+    if check_isp_links(1, isp1_if, testip1, testip2, testip3, isp1_gw_ip) == 'ok' and check_isp_links(1, isp2_if, testip1, testip2, testip3, isp2_gw_ip) == 'ok':
+        ipr.route("add", dst="0.0.0.0/0", multipath=[{"gateway": isp1_gw_ip, "hops": 0},{"gateway": isp2_gw_ip, "hops": 0}]), 
+        print "Both links looks good. Insert multipath default route in table main."
+        #ipr.route("add", dst="0.0.0.0/0", gateway=isp1_gw_ip)
         #Need to add code for route insertion 
+#    else:
+        #Insert routine to handle situation when only one ISP link alive
+
 
 links = ipr.get_links()
 addr = ipr.get_addr()
@@ -75,7 +81,7 @@ else:
 
 if ipr.link_lookup(ifname = isp2_if):
 	isp2_ifState = get_int_state(isp2_if)
-	print "The index of %s interface in list is %d, oper state is %s and ip-address is %s" % (isp2_if,isp2_ifState[0],isp2_ifState[1],isp2_ifState[2])
+	print "The index of %s interface in list is %d, oper state is %s and ip-address is %s\n" % (isp2_if,isp2_ifState[0],isp2_ifState[1],isp2_ifState[2])
 else:
         print "Interface %s not found in the system. Please check your configuration." % isp2_if
 
