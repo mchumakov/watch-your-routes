@@ -11,10 +11,12 @@ ISP1_GW_IP = '172.16.0.254'
 ISP1_LINK_TYPE = 'ethernet'
 ISP1_ADDR = '172.16.0.253'
 ISP1_NET = '172.16.0.0/24'
+ISP1_RT_TAB = 216 
 ISP2_IF = 'ens37'
 ISP2_GW_IP = '172.16.1.254'
 ISP2_LINK_TYPE = 'pppoe'
 ISP2_ADDR = '172.16.1.253'
+ISP2_RT_TAB = 217
 TESTIP1 = '94.198.134.60'
 TESTIP2 = '89.169.1.102'
 TESTIP3 = '8.8.8.8'
@@ -63,9 +65,9 @@ def check_def_routes():
 #But we need to check return value to handle situation when there is no any default route installed.
     routes = ipr.get_routes(dst_len=0, table=254)
     try:
-#Obtain route information from table 216 - ISP1
-        routes_isp1 = ipr.get_routes(dst_len=0, table=216)
-        routes_isp1_net = ipr.get_routes(dst=ISP1_NET, table=216, family=2)
+#Obtain route information from table ISP1_RT_TAB - ISP1
+        routes_isp1 = ipr.get_routes(dst_len=0, table=ISP1_RT_TAB)
+        routes_isp1_net = ipr.get_routes(dst=ISP1_NET, table=ISP1_RT_TAB, family=2)
         print routes_isp1_net
         print len(routes_isp1)
     except Exception as e:
@@ -80,8 +82,8 @@ def check_def_routes():
     #else jj:
 
     try:
-#obtain route information from table 217 - ISP2
-        routes_isp2 = ipr.get_routes(dst_len=0, table=217)
+#obtain route information from table ISP2_RT_TAB - ISP2
+        routes_isp2 = ipr.get_routes(dst_len=0, table=ISP2_RT_TAB)
         print len(routes_isp2)
     except Exception as e:
         print "Netlink exception!", type(e), e
@@ -97,22 +99,22 @@ def check_def_routes():
 #if there is incorrect one we change it to correct one
 
     if len(routes_isp1) == 0 and if_state[0] != True:
-        ipr.route("add", dst="0.0.0.0/0", gateway=ISP1_GW_IP, table=216)
+        ipr.route("add", dst="0.0.0.0/0", gateway=ISP1_GW_IP, table=ISP1_RT_TAB)
     elif isp1_cur_rt_gw != ISP1_GW_IP and if_state[0] != True:
-        ipr.route("del", dst="0.0.0.0/0", table=216)
-        ipr.route("add", dst="0.0.0.0/0", gateway=ISP2_GW_IP, table=216)
+        ipr.route("del", dst="0.0.0.0/0", table=ISP1_RT_TAB)
+        ipr.route("add", dst="0.0.0.0/0", gateway=ISP2_GW_IP, table=ISP1_RT_TAB)
  
 #    if len(routes_isp1_net) == 0 and if_state[0] != True:
 #        try:
-#            ipr.route("add", dst=ISP1_NET, table=216, src=ISP1_ADDR)
+#            ipr.route("add", dst=ISP1_NET, table=ISP1_RT_TAB, src=ISP1_ADDR)
 #        except Exception as e:
 #            print "Netlink exception.", type(e), e
     
     if len(routes_isp2) == 0 and if_state[1] != True:
-        ipr.route("add", dst="0.0.0.0/0", gateway=ISP2_GW_IP, table=217)
+        ipr.route("add", dst="0.0.0.0/0", gateway=ISP2_GW_IP, table=ISP2_RT_TAB)
     elif isp2_cur_rt_gw != ISP2_GW_IP and if_state[1] != True:
-        ipr.route("del", dst="0.0.0.0/0", table=217)
-        ipr.route("add", dst="0.0.0.0/0", gateway=ISP2_GW_IP, table=217)
+        ipr.route("del", dst="0.0.0.0/0", table=ISP2_RT_TAB)
+        ipr.route("add", dst="0.0.0.0/0", gateway=ISP2_GW_IP, table=ISP2_RT_TAB)
 
     if len(routes) != 0:
         if routes[0].get_attr('RTA_MULTIPATH') != None:
