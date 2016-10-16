@@ -65,17 +65,31 @@ def check_def_routes():
     try:
         routes_isp1 = ipr.get_routes(dst_len=0, table=216) #Obtain route information from table 216 - ISP1
         print len(routes_isp1)
-    except pyroute2.netlink.exceptions.NetlinkError:
-        print "Netlink exception!!!"
+    except Exception as e:
+        print "Netlink exception!!!", type(e), e 
         routes_isp1 = [] 
-    if len(routes_isp1) != '0': 
+    if len(routes_isp1) != 0: 
         isp1_cur_rt_gw = routes_isp1[0].get_attr('RTA_GATEWAY') 
+    else:
+        isp1_cur_rt_gw = 0
     #else jj:
         
-    routes_isp2 = ipr.get_routes(dst_len=0, table=217) #obtain route information from table 217 - ISP2
-#then we check if there corresponding deafult routes installes in each of the ISP tables
-#if there is no default route installes we insert it, if there is incorrect one we change it to correct one
-    if len(routes_isp1) == '0' and if_state[0] != True: 
+    try:
+        routes_isp2 = ipr.get_routes(dst_len=0, table=217) #obtain route information from table 217 - ISP2
+        print len(routes_isp2)
+    except Exception as e:
+        print "Netlink exception!", type(e), e
+        routes_isp2 = []
+
+    if len(routes_isp2) != 0:
+        isp2_cur_rt_gw = routes_isp2[0].get_attr('RTA_GATEWAY')
+    else:
+        isp2_cur_rt_gw = 0
+
+#then we check if there are corresponding deafult routes installed in each of the ISP tables
+#if there are no default routes installed we insert it, if there is incorrect one we change it to correct one
+
+    if len(routes_isp1) == 0 and if_state[0] != True: 
         ipr.route("add", dst="0.0.0.0/0", gateway=isp1_gw_ip, table=216) 
     elif isp1_cur_rt_gw != isp1_gw_ip and if_state[0] != True:
         ipr.route("del", dst="0.0.0.0/0", table=216)
@@ -83,11 +97,10 @@ def check_def_routes():
 
     if len(routes_isp2) == 0 and if_state[1] != True:
         ipr.route("add", dst="0.0.0.0/0", gateway=isp2_gw_ip, table=217)
-    elif routes_isp2[0].get_attr('RTA_GATEWAY') != isp2_gw_ip:
+    elif isp2_cur_rt_gw != isp2_gw_ip and if_state[1] != True:
         ipr.route("del", dst="0.0.0.0/0", table=217)
         ipr.route("add", dst="0.0.0.0/0", gateway=isp2_gw_ip, table=217) 
 
-#debug    print routes
     if len(routes) != 0:
         if routes[0].get_attr('RTA_MULTIPATH') != None:
             print "\nThere is multipath default route installed.\n"
@@ -120,7 +133,6 @@ def check_isp_links(isp_addr, f_testip1, f_testip2, f_testip3, f_isp_gw):
     else:
         internet_state = False
     
-#    print "This link has %d hosts alive." % health_counter
     return gw_alive, internet_state
 
 while True:
@@ -131,12 +143,15 @@ while True:
 #debug    print def_route
     if if_state[0] == False: 
         isp1Link_state = check_isp_links(isp1_addr, testip1, testip2, testip3, isp1_gw_ip)
+        print "ISP1: gw available %s, link state %s." % (isp1Link_state[0], isp1Link_state[1])
     else:
         isp1Link_state = [False, False]
 
     if if_state[1] == False:
         isp2Link_state = check_isp_links(isp2_addr, testip1, testip2, testip3, isp2_gw_ip)
-        print isp2Link_state
+        print "ISP2: gw available %s, link state %s." % (isp2Link_state[0], isp2Link_state[1])
+    else:
+        isp2Link_state = [False, False]
     
     if isp1Link_state[0] and isp2Link_state[0] and def_route[0] == 2:
         print "Trying to install multipath default route."
