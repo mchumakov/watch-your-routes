@@ -5,7 +5,6 @@ import time
 from subprocess import Popen, PIPE
 from pyroute2 import IPRoute
 
-
 ISP1_IF = 'ens33'
 ISP1_GW_IP = '172.16.0.254'
 ISP1_LINK_TYPE = 'ethernet'
