@@ -194,7 +194,11 @@ while True:
     if isp1Link_state[1] and isp2Link_state[1]:
         print "Both links looks good."
         if def_route[0] == 1:
-            ipr.route("del", dst="0.0.0.0/0")
+            try:
+                ipr.route("del", dst="0.0.0.0/0")
+            except Exception as e:
+                print "Failed to delete default route.", type(e), e
+
             print "Installing multipath default."
             ipr.route("add", dst="0.0.0.0/0", multipath=[{"gateway": ISP1_GW_IP, "hops": 0},
                                                          {"gateway": ISP2_GW_IP, "hops": 0}])
@@ -205,7 +209,11 @@ while True:
     elif isp1Link_state[1] and not isp2Link_state[1]:
         print "ISP2 link is dead."
         if def_route[0] == 0 or def_route[1] == ISP2_GW_IP:
-            ipr.route("del", dst="0.0.0.0/0")
+            try:
+                ipr.route("del", dst="0.0.0.0/0")
+            except Exception as e:
+                print "Failed to delete default route.", type(e), e
+
         if def_route[1] != ISP1_GW_IP:
             print "Adding default via ISP1 link."
             ipr.route("add", dst="0.0.0.0/0", gateway=ISP1_GW_IP)
