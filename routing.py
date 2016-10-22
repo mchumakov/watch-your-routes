@@ -3,22 +3,35 @@
 
 import time
 from subprocess import Popen, PIPE
+from sys import argv
 from pyroute2 import IPRoute
 
-ISP1_IF = 'ens33'
-ISP1_GW_IP = '172.16.0.254'
-ISP1_LINK_TYPE = 'ethernet'
-ISP1_ADDR = '172.16.0.253'
-ISP1_NET = '172.16.0.0/24'
-ISP1_RT_TAB = 216 
-ISP2_IF = 'ens37'
-ISP2_GW_IP = '172.16.1.254'
-ISP2_LINK_TYPE = 'pppoe'
-ISP2_ADDR = '172.16.1.253'
-ISP2_RT_TAB = 217
-TESTIP1 = '94.198.134.60'
-TESTIP2 = '89.169.1.102'
-TESTIP3 = '8.8.8.8'
+CONF_FILE = open(argv[1])
+conf_data = []
+const = {}
+
+for line in CONF_FILE:
+    conf_data.append([str(i) for i in line.strip().split() if i != '='])
+
+for item in conf_data:
+    const[item[0]] = item[1]
+
+ISP1_IF = const['ISP1_IF']
+ISP1_GW_IP = const['ISP1_GW_IP']
+ISP1_LINK_TYPE = const['ISP1_LINK_TYPE']
+ISP1_ADDR = const['ISP1_ADDR']
+ISP1_NET = const['ISP1_NET']
+ISP1_RT_TAB = int(const['ISP1_RT_TAB'])
+ISP2_IF = const['ISP2_IF']
+ISP2_GW_IP = const['ISP2_GW_IP']
+ISP2_LINK_TYPE = const['ISP2_LINK_TYPE']
+ISP2_ADDR = const['ISP2_ADDR']
+ISP2_RT_TAB = int(const['ISP2_RT_TAB'])
+TESTIP1 = const['TESTIP1']
+TESTIP2 = const['TESTIP2']
+TESTIP3 = const['TESTIP3']
+
+CONF_FILE.close()
 
 #Get IPRoute object to access Netlink data.
 ipr = IPRoute()
@@ -149,6 +162,10 @@ def check_isp_links(isp_addr, f_testip1, f_testip2, f_testip3, f_isp_gw):
         internet_state = False
 
     return gw_alive, internet_state
+
+#########################
+# Main code starts here.#
+#########################
 
 while True:
     if_state = check_if_state(ISP1_IF, ISP2_IF)
