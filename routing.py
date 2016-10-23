@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+# Some comments to test git central repositorie workflow
+
 import time
 from subprocess import Popen, PIPE
 from sys import argv
