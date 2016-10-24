@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+# Test push from macOS
+
 import time
 from subprocess import Popen, PIPE
 from sys import argv
