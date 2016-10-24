@@ -1,8 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# Some comments to test git central repositorie workflow
-
 import time
 from subprocess import Popen, PIPE
 from sys import argv
@@ -47,6 +45,7 @@ def check_if_state(f_isp1_if, f_isp2_if):
     if len(isp1_if_index) == 0:
         print "Interface %s not found in the system." % f_isp1_if
         isp1_failed = True
+        isp1_if_data = []
     else:
         isp1_if_data = ipr.get_addr(family=2, index=isp1_if_index[0])
 
@@ -54,6 +53,10 @@ def check_if_state(f_isp1_if, f_isp2_if):
     if len(isp2_if_index) == 0:
         print "Interface %s not found in the system." % f_isp2_if
         isp2_failed = True
+# define isp_2_if_data as empty list so to resolve exception
+# 'UnboundLocalError: local variable 'isp2_if_data' referenced before assignment'
+# which may oocur if we will reference isp2_if_data further.
+        isp2_if_data = []
     else:
         isp2_if_data = ipr.get_addr(family=2, index=isp2_if_index[0])
 
