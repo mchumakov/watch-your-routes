@@ -149,18 +149,26 @@ def check_isp_links(isp_addr, f_testip1, f_testip2, f_testip3, f_isp_gw):
     gw_alive = False
     internet_state = False
     health_counter = 0
+    result = []
     fping = Popen(['fping', '-S', isp_addr, f_isp_gw, f_testip1, f_testip2, f_testip3]
                   , stdout=PIPE).communicate()
-    result = [str(i) for i in fping[0].strip().split() if i != 'is']
+    # check return value for fping tuple
+    if fping[0] == '':
+	return gw_alive, internet_state
+    else:
+        result = [str(i) for i in fping[0].strip().split() if i != 'is']
+
     if result[1] == 'alive':
         gw_alive = True
     else:
         gw_alive = False
+
     for i in xrange(2, len(result)):
         if i%2 != 0 and result[i] != 'unreachable':
             health_counter += 1
         else:
             continue
+
     if health_counter != 0:
         internet_state = True
     else:
