@@ -85,8 +85,7 @@ def check_def_routes():
 #Obtain route information from table ISP1_RT_TAB - ISP1
         routes_isp1 = ipr.get_routes(dst_len=0, table=ISP1_RT_TAB)
         routes_isp1_net = ipr.get_routes(dst=ISP1_NET, table=ISP1_RT_TAB, family=2)
-        print routes_isp1_net
-        print len(routes_isp1)
+        print "check_def_routes(): routes_isp1_net: ", routes_isp1_net
     except Exception as e:
         print "Netlink exception!", type(e), e
         routes_isp1 = []
@@ -96,12 +95,10 @@ def check_def_routes():
         isp1_cur_rt_gw = routes_isp1[0].get_attr('RTA_GATEWAY')
     else:
         isp1_cur_rt_gw = 0
-    #else jj:
 
     try:
-#obtain route information from table ISP2_RT_TAB - ISP2
+#Obtain route information from table ISP2_RT_TAB - ISP2
         routes_isp2 = ipr.get_routes(dst_len=0, table=ISP2_RT_TAB)
-        print len(routes_isp2)
     except Exception as e:
         print "Netlink exception!", type(e), e
         routes_isp2 = []
@@ -135,14 +132,14 @@ def check_def_routes():
 
     if len(routes) != 0:
         if routes[0].get_attr('RTA_MULTIPATH') != None:
-            print "\nThere is multipath default route installed.\n"
+            print "There is multipath default route installed.\n"
             return 0, None
         else:
-            print "\nThere is single gateway default route installed."
+            print "There is single gateway default route installed."
             current_isp = routes[0].get_attr('RTA_GATEWAY')
             return 1, current_isp
     else:
-        print "\nNo default routes found in routing table."
+        print "No default routes found in routing table."
         return 2, None
 
 def check_isp_links(isp_addr, f_testip1, f_testip2, f_testip3, f_isp_gw):
@@ -182,10 +179,10 @@ def check_isp_links(isp_addr, f_testip1, f_testip2, f_testip3, f_isp_gw):
 
 while True:
     if_state = check_if_state(ISP1_IF, ISP2_IF)
-    print if_state
+    print "\nMain loop check_if_state return value is ", if_state
 
     def_route = check_def_routes()
-#debug    print def_route
+    
     if if_state[0] is False:
         isp1Link_state = check_isp_links(ISP1_ADDR, TESTIP1, TESTIP2, TESTIP3, ISP1_GW_IP)
         print "ISP1: gw available %s, link state %s." % (isp1Link_state[0], isp1Link_state[1])
